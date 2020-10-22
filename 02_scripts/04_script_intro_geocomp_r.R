@@ -63,6 +63,27 @@ ve <- rpois(100, 10) %>%
 ve  
 
 # exercicio 09 ------------------------------------------------------------
+# Converter para pipe
+
+#1 log10(cumsum(1:100))
+set.seed(42)
+1:100 %>% 
+  cumsum() %>% 
+  log10()
+
+set.seed(42)
+#2 sum(sqrt(rnorm(100)))
+# 100 %>% # tanto faz se 100 está dentro ou fora desde que tenha feito o set.seed()
+#   rnorm() %>% 
+rnorm(100) %>%
+  abs %>% # módulo
+  sqrt() %>% 
+  sum()
+
+#3 sum(sort(sample(1:10, 10000, rep = TRUE)))
+sample(1:10, 10000, rep = TRUE) %>% 
+  sort %>% 
+  sum
 
 
 # 4.3 readr ---------------------------------------------------------------
@@ -73,10 +94,10 @@ ve
 library(here)
 
 # confer
-here::here()
+here::here() # procura onde tem um .rproj
 
 # create a .here file
-# here::set_here()
+here::set_here()
 
 # formato .csv
 # import sites
@@ -145,7 +166,6 @@ df$c
 tb$c
 
 # 4.6 tidyr ---------------------------------------------------------------
-# funcoes
 # 1 unite(): junta dados de multiplas colunas em uma
 # 2 separate(): separa caracteres em mulplica colunas
 # 3 drop_na(): retira linhas com NA
@@ -167,6 +187,8 @@ si_unite$lat_lon
 # separar os dados de "period" em quatro colunas dos seus valores
 si_separate <- si %>% 
   tidyr::separate("period", c("mo", "da", "tw", "ni"), remove = FALSE)
+# si_separate <- si %>% 
+#   tidyr::separate("period", c("mo", "da", "tw", "ni"), remove = FALSE, fill = "left")
 si_separate[, c(1, 9:13)]
 
 # 3 separate_rows()
@@ -232,12 +254,27 @@ si_long <- si_wide %>%
                       values_to = "species_number")
 si_long
 
-# exercicio 10 ------------------------------------------------------------
+si_long <- si_long %>% 
+  dplyr::filter(species_number != 0)
 
+# exercicio 10 ------------------------------------------------------------
+colnames(si)
+si_10 <- si %>% 
+  tidyr::unite("local_completo", country:site, sep = ", ") # ou espeficar colunas com c()
+si_10$local_completo
 
 # exercicio 11 ------------------------------------------------------------
+sp
+sp$individuals # abundancia
 
-
+loc_fam <- sp %>% 
+  tidyr::pivot_wider(id_cols = id,
+                     names_from = family,
+                     values_from = individuals,
+                     values_fn = list(individuals = sum),
+                     values_fill = list(individuals = 0)
+                     )
+loc_fam
 
 # 4.7 dplyr ---------------------------------------------------------------
 # funcoes
@@ -267,7 +304,7 @@ si_select
 
 #  starts_with(), ends_with() e contains()
 si_select <- si %>% 
-  select(contains("sp"))
+  select(contains("sp")) # "sp" é o string no nome da coluna
 si_select
 
 # 2 pull
@@ -283,12 +320,14 @@ si_pull
 # 3 rename
 si_rename <- si %>%
   rename(sp = species_number)
-si_rename
+si_rename$sp
 
 # 4 mutate
+si$record
 si_mutate <- si %>% 
   mutate(record_factor = as.factor(record))
 si_mutate$record_factor
+
 
 # 5 arrange
 si_arrange <- si %>% 
@@ -411,19 +450,32 @@ da
 
 
 # exercicio 12 ------------------------------------------------------------
+si$altitude
+si$temperature
+si$precipitation
 
-
-
-# exercicio 13 ------------------------------------------------------------
-
-
+si_log <- si %>%
+  mutate(alt_log = log10(altitude),
+         tem_log = log10(temperature),
+         pre_log = log10(precipitation))
+si_log
 
 # exercicio 14 ------------------------------------------------------------
+si_arr <- si %>% 
+  arrange(desc(altitude)) # ou arrenge(-altitude)
+si_arr
 
-
+# exercicio 14 ------------------------------------------------------------
+si_fil <- si %>% 
+  filter(altitude > 1000 &
+         temperature < 15 &
+         precipitation > 1000)
 
 # exercicio 15 ------------------------------------------------------------
-
+si_sort <- si %>% 
+  filter(species_number > 15) %>%
+  sample_n(200)
+si_sort
 
 # 4.8 stringr -------------------------------------------------------------
 # comprimento
@@ -479,9 +531,12 @@ fa_rev <- fa_recode %>%
   forcats::fct_rev()
 fa_rev
 
-# fct_relevel(): especifica a classificacao de um nivel
+# fct_relevel(): especifica a ordem de um ou mais niveis
 fa_relevel <- fa_recode %>% 
-  forcats::fct_relevel(c("a", "m", "b"))
+  forcats::fct_relevel("b")
+fa_relevel
+fa_relevel <- fa_recode %>% 
+  forcats::fct_relevel(c("b", "m"))
 fa_relevel
 
 # fct_inorder(): ordem em que aparece
@@ -496,7 +551,7 @@ fa_infreq
 
 # fct_lump(): agregacao de niveis raros em um nivel
 fa_lump <- fa_recode %>% 
-  forcats::fct_lump()
+  forcats::fct_lump(other_level = "Nata")
 fa_lump
 
 # 4.10 lubridate ----------------------------------------------------------

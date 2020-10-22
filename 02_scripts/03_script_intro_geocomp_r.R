@@ -141,7 +141,10 @@ levels(fa_no)
 class(fa_no)
 
 # exercicio 06 ------------------------------------------------------------
-
+cont <- rep("cont", 50) ; trat <- rep("trat", 50)
+#' ou rep(c("cont", "trat"), each = 50)
+tr <- factor(c(cont, trat))
+#' ou tr(as.factor(rep(c("cont", "trat"), each = 50)))
 
 # 3. matrix: homogeneo (um modo) e bidimensional (duas dimensao)
 # 1 dispondo elementos
@@ -163,7 +166,7 @@ ma_col
 
 # criar dois vetores
 vec_1 <- c(1, 2, 3)
-vec_2 <- c(4, 5, 6)
+vec_2 <- c(4, 5, 6) # ou vec_2 <- c(4, 5, 6 , 7, 8)
 
 # combinar por linhas - vertical - um embaixo do outro
 ma_rbind <- rbind(vec_1, vec_2)
@@ -174,7 +177,9 @@ ma_cbind <- cbind(vec_1, vec_2)
 ma_cbind
 
 # exercicio 07 ------------------------------------------------------------
-
+vec <- sample(1:10, 10000, replace = T)
+ma <- matrix(vec, nrow = 100, byrow = F)
+ma
 
 # 4. array: homogeneo (um modo) e multidimensional (mais que duas dimensoes)
 # 1 Dispondo elementos
@@ -230,7 +235,11 @@ df_c
 str(df_c)
 
 # exercicio 08 ------------------------------------------------------------
-
+df <- data.frame(id = 1:50,
+                 sp = as.factor(c(paste0("sp", 1:9), paste0("sp", 10:50))),
+                 ab = sample(0:5, 50, rep = T))
+df
+str(df)
 
 # 6. list: heterogeneo (mais de um modo) e unidimensional (uma dimensao)
 li <- list(rep(1, 20), # vector
@@ -338,6 +347,13 @@ subset(ve, ve > 1)
 
 # condicao para uma operacao
 ifelse(ve > 1, 1, 0)
+
+df_c <- as.data.frame(df_c)
+df_c
+
+ifelse(df_c$tr == 1, "M", "F")
+df_c$tr <- ifelse(df_c$tr == 1, "M", "F")
+df_c
 
 # indexacao []
 # lista
@@ -499,7 +515,7 @@ nulo
 
 # 3.7 diretorio de trabalho -----------------------------------------------
 # definir o diretorio de trabalho
-setwd("/home/mude/data/github/disciplina-analise-geoespacial/03_dados/tabelas")
+setwd("D:/Data/Documentos/github/disciplina-analise-geoespacial-r/03_dados/tabelas")
 
 # verificar o diretorio
 getwd()
@@ -531,6 +547,7 @@ library(openxlsx)
 # ler e atribuir uma planilha eletronica (.xlsx) a um objeto
 da <- openxlsx::read.xlsx("ATLANTIC_AMPHIBIANS_sites.xlsx", sheet = 1)
 da
+class(da)
 
 # 3.9 Conferir e manejar dados importados ---------------------------------
 
@@ -549,7 +566,7 @@ da
 head(da)
 
 # head(): mostra as primeiras 10 linhas
-head(da, 10)
+head(da, 20)
 
 # tail(): mostra as ultimas 6 linhas
 tail(da)

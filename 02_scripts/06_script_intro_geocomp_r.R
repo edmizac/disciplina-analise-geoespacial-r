@@ -1,7 +1,7 @@
 #' ---
 #' title: aula 06 - estrutura e manejo de dados vetoriais 
 #' author: mauricio vancine
-#' date: 2020-10-20
+#' date: 2020-10-22
 #' ---
 
 # topics ------------------------------------------------------------------
@@ -35,14 +35,17 @@ library(tidyverse)
 
 # 6.3 classes sf ----------------------------------------------------------
 # simple feature geometries (sfg)
+
 # simple
 # sf::st_point()
 # sf::st_linestring()
 # sf::st_polygon()
+
 # multi
 # sf::st_multipoint()
 # sf::st_multilinestring()
 # sf::st_multipolygon()
+
 # collections
 # sf::st_geometrycollection()
 
@@ -55,6 +58,8 @@ po
 
 # plot
 plot(po, pch = 20, cex = 4, axes = TRUE, graticule = TRUE)
+plot(po, pch = 20, cex = 4, axes = TRUE)
+plot(po, pch = 20, cex = 4)
 
 # matrix - multipoint
 multipoint_matrix <-  rbind(c(5, 2), c(1, 3), c(3, 4), c(3, 2))
@@ -63,18 +68,24 @@ multipoint_matrix
 po_mul <- sf::st_multipoint(multipoint_matrix)
 po_mul
 
+str(po_mul)
+
 # plot
 plot(po_mul, pch = 20, cex = 4, axes = TRUE, graticule = TRUE)
 
 # matrix - multipoint
 multipoint_matrix <- rbind(c(5, 2), c(1, 3), c(3, 4), c(3, 2))
 multipoint_matrix
+plot(multipoint_matrix, pch = 20, cex = 4, axes = TRUE, graticule = TRUE)
 
 lin <- sf::st_linestring(multipoint_matrix)
 lin
+str(lin)
+st_sfc()
+
 
 # plot
-plot(lin, lwd = 2, axes = TRUE, graticule = TRUE)
+plot(lin, lwd = 2, axes = TRUE, graticule = TRUE) # segue a ordem dada ao vetor multipoint_matriz com rbind(c())
 
 # list - polygon
 polygon_list <- list(rbind(c(1, 5), c(2, 2), c(4, 1), c(4, 4), c(1, 5)))
@@ -82,11 +93,16 @@ polygon_list
 
 pol <- sf::st_polygon(polygon_list)
 pol
+str(pol)
 
 # plot
 plot(pol, col = "gray", axes = TRUE, graticule = TRUE)
 
 # simple feature columns (sfc)
+# sf::st_sfc()
+# sf::st_geometry_type()
+# sf::st_crs()
+
 # sfc point
 point1 <- sf::st_point(c(5, 2))
 point1
@@ -111,19 +127,19 @@ sf::st_geometry_type(po_pol_sfc)
 # plot
 plot(po_pol_sfc, pch = 20, cex = 4, lwd = 2, col = "gray", axes = TRUE, graticule = TRUE)
 
-# epgs definition
+# epsg definition (adicionando sistema de coordenadas)
 points_sfc_wgs <- sf::st_sfc(point1, point2, crs = 4326)
 points_sfc_wgs
 
 sf::st_crs(points_sfc_wgs)
 
-# proj4string definition
+# proj4string definition (mesma coisa que com o epgs, tbm disponível como código no site do epsg)
 points_sfc_wgs <- sf::st_sfc(point1, point2, crs = "+proj=longlat +datum=WGS84 +no_defs")
 points_sfc_wgs
 
 sf::st_crs(points_sfc_wgs)
 
-# plot
+# plot (note os axes, já tem o "E" de "east")
 plot(points_sfc_wgs, pch = 20, cex = 4, axes = TRUE, graticule = TRUE)
 
 # class sf
@@ -141,7 +157,7 @@ rc_attrib <- data.frame(                       # data.frame object
 rc_attrib
 
 rc_sf <- sf::st_sf(rc_attrib, geometry = rc_geom)  # sf object
-rc_sf
+rc_sf # geometry é os dados das coordenadas + sistema de coordenadas
 
 class(rc_sf)
 
@@ -158,11 +174,15 @@ plot(rc_sf$geometry, pch = 20, cex = 4, axes = TRUE, graticule = TRUE) # rc_sf$g
 # create directory
 dir.create(here::here("03_dados", "vetor"))
 
+# increase time to download (pq o R cancela o download se exceder)
+options(timeout = 600)
+
 # download points
 for(i in c(".dbf", ".prj", ".shp", ".shx")){
   download.file(url = paste0("http://geo.fbds.org.br/SP/RIO_CLARO/HIDROGRAFIA/SP_3543907_NASCENTES", i),
                 destfile = here::here("03_dados", "vetor", paste0("SP_3543907_NASCENTES", i)), mode = "wb")
 }
+# mode = "wb" impede de dar erro no windows (conferir se seria o mesmo para os dados GEDI)
 
 # download lines
 for(i in c(".dbf", ".prj", ".shp", ".shx")){
@@ -176,14 +196,16 @@ for(i in c(".dbf", ".prj", ".shp", ".shx")){
                 destfile = here::here("03_dados", "vetor", paste0("SP_3543907_USO", i)), mode = "wb")
 }
 
-# import points
+# import points (nascentes)
 rc_spr <- sf::st_read(here::here("03_dados", "vetor", "SP_3543907_NASCENTES.shp"), quiet = TRUE)
 rc_spr
 
 # plot
 plot(rc_spr$geometry, pch = 20, col = "blue", main = NA, axes = TRUE, graticule = TRUE)
+# a grade ficou distorcida porque a projeção está em UTM e a grade não
 
-# import lines
+
+# import lines (rios)
 rc_riv <- sf::st_read(here::here("03_dados", "vetor", "SP_3543907_RIOS_SIMPLES.shp"), quiet = TRUE)
 rc_riv
 
@@ -193,9 +215,18 @@ plot(rc_riv$geometry, col = "steelblue", main = NA, axes = TRUE, graticule = TRU
 # import polygons
 rc_use <- sf::st_read(here::here("03_dados", "vetor", "SP_3543907_USO.shp"), quiet = TRUE)
 rc_use
+# rc_use[1]
+# rc_use[2]
+# rc_use[3]
+# rc_use[4]
+# rc_use[5]
+
 
 # plot
 plot(rc_use[5], col = c("blue", "orange", "gray30", "forestgreen", "green"), main = NA, axes = TRUE, graticule = TRUE)
+# parece que tanto faz a coluna que especifica ([2] ou [5]), as cores de uso do solo permanecem
+plot(rc_use[c(1,5)], col = c("blue", "orange", "gray30", "forestgreen", "green"), main = NA, axes = TRUE, graticule = TRUE)
+
 
 # import gps data
 gps_gpx <- sf::read_sf(here::here("03_dados", "vetor", "waypoints.gpx"), layer = "waypoints")
@@ -210,6 +241,7 @@ gps_kml
 
 # plot
 plot(gps_kml$geometry, cex = 4, pch = 20, col = "red", main = NA, axes = TRUE, graticule = TRUE)
+# .kml e .gpx plotam a mesma coisa
 
 # import data from packages
 # brazil 2019
@@ -253,9 +285,10 @@ bi_2019
 
 # plot
 plot(bi_2019$geom, col = "gray", main = NA, axes = TRUE, graticule = TRUE)
+plot(bi_2019$geom, main = NA, axes = TRUE, graticule = TRUE)
 
 # list all datasets available in the geobr package
-geobr::list_geobr()
+View(geobr::list_geobr())
 
 # south america
 sa <- rnaturalearth::ne_countries(scale = "small", continent = "South America", returnclass = "sf")
@@ -298,7 +331,7 @@ si
 
 # add column
 si <- si %>% 
-  dplyr::mutate(lon = longitude, lat = latitude, .before = 1)
+  dplyr::mutate(lon = longitude, lat = latitude, .before = 1) #novas colunas adicionadas antes da primeira coluna
 si
 
 # convert to sf
@@ -313,7 +346,7 @@ plot(si_ve$geometry, pch = 20, main = NA, axes = TRUE, graticule = TRUE)
 co110_sp <- rnaturalearth::countries110
 co110_sp
 
-# countries sf
+# countries sf #conversão de st em sf. sf é preferencial
 co110_sf <- sf::st_as_sf(co110_sp)
 co110_sf
 
@@ -323,27 +356,33 @@ plot(co110_sf$geometry, col = "gray", main = NA)
 # countries sp
 co110_sp <- sf::as_Spatial(co110_sf)
 co110_sp
+plot(co110_sp$geometry, col = "gray", main = NA) # no formato sp não funciona pq o sp não tem o geometry. Essa é a dualidade do sf citada na aula
+plot(co110_sp)
+
 
 # 6.7 conversao do crs --------------------------------------------------
 # crs local
 # convert coordinate system
 rc_2019_sirgas2000_utm23s <- sf::st_transform(rc_2019, crs = 31983)
 rc_2019_sirgas2000_utm23s
+plot(rc_2019_sirgas2000_utm23s[1], axes = TRUE, graticule = TRUE)
 
 # convert datum and coordinate system
 rc_2019_wgs84_utm23s <- sf::st_transform(rc_2019, crs = 32723)
 rc_2019_wgs84_utm23s
+plot(rc_2019_wgs84_utm23s[1], axes = TRUE, graticule = TRUE)
 
 # convert datum
 rc_2019_wgs84_gcs <- sf::st_transform(rc_2019, crs = 4326)
 rc_2019_wgs84_gcs
+plot(rc_2019_wgs84_gcs[1], axes = TRUE, graticule = TRUE)
 
 # crs global
 # countries - WGS84/GCS
 co110_sf
 
 # plot
-plot(co110_sf$geometry, col = "gray")
+plot(co110_sf$geometry, col = "gray", graticule = TRUE)
 
 # mollweide projection
 co110_sf_moll <- sf::st_transform(co110_sf, crs = "+proj=moll")
@@ -403,6 +442,11 @@ rc_use_class
 
 # 3. attribute aggregation
 rc_spr_n <- rc_spr %>% 
+  dplyr::group_by(MUNICIPIO) %>% 
+  dplyr::summarise(n = n())
+rc_spr_n
+
+rc_spr_n <- rc_spr %>% 
   dplyr::group_by(MUNICIPIO, HIDRO) %>% 
   dplyr::summarise(n = n())
 rc_spr_n
@@ -420,9 +464,29 @@ rc_use_use_area
 # 4. attribute create - area
 rc_use_area <- rc_use %>% 
   dplyr::mutate(area_m2 = sf::st_area(rc_use),
-                area_ha = sf::st_area(rc_use)/1e4) %>% 
+                area_ha = sf::st_area(rc_use)/1e4) %>% # transformando m2 em ha (/10000)
   sf::st_drop_geometry()
 rc_use_area
+# útil para fazer legendas
+
+plot(dplyr::sample_frac(rc_spr, .3)[1], pch = 20) # sample_frac() faz um sample aleatorio
+
+
+# feature manipulation
+# dplyr::filter()
+# dplyr::distinc()
+# dplyr::slice()
+# dplyr::n_sample()
+# dplyr::group_by()
+# dplyr::summarise()
+
+# attribute table manipulation
+# dplyr::select()
+# dplyr::pull()
+# dplyr::rename()
+# dplyr::mutate()
+# dplyr::arrange()
+# dplyr::*_join()
 
 # 6.9 operacoes espaciais -------------------------------------------------
 # 1. spatial subsetting
@@ -436,11 +500,6 @@ rc_spr_forest <- rc_spr %>%
   dplyr::filter(sf::st_intersects(x = ., y = rc_use_forest, sparse = FALSE))
 rc_spr_forest
 
-# 1. spatial subsetting - outside
-rc_spr_forest_out <- rc_spr %>% 
-  dplyr::filter(!sf::st_intersects(x = ., y = rc_use_forest, sparse = FALSE))
-rc_spr_forest_out
-
 # 1. spatial subsetting - inside
 rc_spr_forest <- rc_spr[rc_use_forest, ]
 rc_spr_forest
@@ -450,14 +509,16 @@ plot(rc_2019_sirgas2000_utm23s$geom, col = "gray", main = NA, axes = TRUE, grati
 plot(rc_use_forest$geometry, col = "forestgreen", add = TRUE)
 plot(rc_spr_forest$geometry, col = "blue", pch = 20, cex = 1, add = TRUE)
 
-# 1. spatial subsetting - outside - comma!
-rc_spr_forest_out <- rc_spr[is.na(rc_use_forest)]
+# 1. spatial subsetting - outside
+rc_spr_forest_out <- rc_spr %>% 
+  dplyr::filter(!sf::st_intersects(x = ., y = rc_use_forest, sparse = FALSE))
 rc_spr_forest_out
 
 # plot
 plot(rc_2019_sirgas2000_utm23s$geom, col = "gray", main = NA, axes = TRUE, graticule = TRUE)
 plot(rc_use_forest$geometry, col = "forestgreen", add = TRUE)
-plot(rc_spr_forest_out$geometry, col = "blue", pch = 20, cex = 1, add = TRUE)
+plot(rc_spr_forest_out$geometry, col = "steelblue", pch = 20, cex = 1, add = TRUE)
+plot(rc_spr_forest$geometry, col = "blue", pch = 20, cex = 1, add = TRUE)
 
 # 2. spatial join
 rc_spr_use <- rc_spr %>% 
@@ -523,8 +584,7 @@ rc_2019_sirgas2000_utm23s_grid_in_spr_count <- rc_2019_sirgas2000_utm23s_grid_in
 rc_2019_sirgas2000_utm23s_grid_in_spr_count
 
 # map
-plot(rc_2019_sirgas2000_utm23s$geom, col = "gray", main = NA, axes = TRUE, graticule = TRUE)
-plot(rc_2019_sirgas2000_utm23s_grid_in_spr_count, add = TRUE)
+plot(rc_2019_sirgas2000_utm23s_grid_in_spr_count["n"], axes = TRUE, graticule = TRUE)
 
 # 5. hexagon
 rc_2019_sirgas2000_utm23s_hex <- rc_2019_sirgas2000_utm23s %>% 
@@ -542,8 +602,7 @@ rc_2019_sirgas2000_utm23s_hex_spr_count <- rc_2019_sirgas2000_utm23s_hex %>%
 rc_2019_sirgas2000_utm23s_hex_spr_count
 
 # map
-plot(rc_2019_sirgas2000_utm23s$geom, col = "gray", main = NA, axes = TRUE, graticule = TRUE)
-plot(rc_2019_sirgas2000_utm23s_hex_spr_count, add = TRUE)
+plot(rc_2019_sirgas2000_utm23s_hex_spr_count["n"], axes = TRUE, graticule = TRUE)
 
 # 6.10 operacoes geometricas ----------------------------------------------
 # 1. simplification
@@ -561,16 +620,16 @@ rc_2019_cent
 
 # plot
 plot(rc_2019_sirgas2000_utm23s$geom, col = "gray", main = NA, axes = TRUE, graticule = TRUE)
-plot(rc_2019_cent, col = "red", pch = 20, add = TRUE)
+plot(rc_2019_cent$geom, cex = 3, col = "red", pch = 20, add = TRUE)
 
 # 2. centroids
-rc_2019_sirgas2000_utm23s_grid_cent <- sf::st_centroid(rc_2019_sirgas2000_utm23s_grid)
-rc_2019_sirgas2000_utm23s_grid_cent
+rc_2019_sirgas2000_utm23s_hex_cent <- sf::st_centroid(rc_2019_sirgas2000_utm23s_hex)
+rc_2019_sirgas2000_utm23s_hex_cent
 
 # plot
 plot(rc_2019_sirgas2000_utm23s$geom, col = "gray", main = NA, axes = TRUE, graticule = TRUE)
-plot(rc_2019_sirgas2000_utm23s_grid, col = adjustcolor("red", .1), add = TRUE)
-plot(rc_2019_sirgas2000_utm23s_grid_cent, col = "red", pch = 20, add = TRUE)
+plot(rc_2019_sirgas2000_utm23s_hex, col = adjustcolor("blue", .1), add = TRUE)
+plot(rc_2019_sirgas2000_utm23s_hex_cent, col = "blue", pch = 20, add = TRUE)
 
 # 3. buffer
 rc_spr_forest_buf <- rc_spr_forest %>% 
